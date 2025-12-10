@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -9,6 +10,7 @@ import { ThemeToggle } from "./theme-toggle";
 
 const links = [
   { href: "/", label: "首页" },
+  { href: "/search", label: "搜索", icon: Search },
   { href: "/about", label: "关于" },
   { href: "/links", label: "友链" },
   { href: "/admin", label: "后台" },
