@@ -18,7 +18,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { ThemeToggle } from "@/components/theme-toggle";
+// import { ThemeToggle } from "@/components/theme-toggle";
 
 // 生成面包屑路径
 function getBreadcrumbs(pathname: string): { href: string; label: string; isLast: boolean }[] {
@@ -95,7 +95,7 @@ export default function AdminLayout({
               </Breadcrumb>
             </div>
             <div className="flex items-center gap-2 px-4">
-              <ThemeToggle />
+              {/* <ThemeToggle /> */}
             </div>
           </header>
           <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
