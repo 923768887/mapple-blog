@@ -59,12 +59,11 @@ export async function GET(request: NextRequest) {
     
     // 解析筛选参数
     const status = searchParams.get("status") as "DRAFT" | "PUBLISHED" | null;
+    const search = searchParams.get("search")?.trim() || "";
 
     // 构建查询条件
-    const where: {
-      authorId?: string;
-      status?: "DRAFT" | "PUBLISHED";
-    } = {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const where: any = {};
 
     // 非管理员只能看到自己的文章
     if (session.user.role !== "ADMIN") {
@@ -74,6 +73,14 @@ export async function GET(request: NextRequest) {
     // 按状态筛选
     if (status === "DRAFT" || status === "PUBLISHED") {
       where.status = status;
+    }
+
+    // 搜索标题
+    if (search) {
+      where.title = {
+        contains: search,
+        mode: "insensitive",
+      };
     }
 
     // 获取总数
