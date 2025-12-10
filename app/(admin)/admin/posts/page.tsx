@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -14,6 +14,7 @@ import {
   ChevronRight,
   Send,
   FileText,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -86,8 +87,26 @@ function formatDate(dateString: string | null): string {
   }).format(new Date(dateString));
 }
 
+// 加载状态组件
+function PostsLoading() {
+  return (
+    <div className="flex items-center justify-center min-h-[400px]">
+      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+    </div>
+  );
+}
+
 // 文章管理页面组件
 export default function AdminPostsPage() {
+  return (
+    <Suspense fallback={<PostsLoading />}>
+      <AdminPostsContent />
+    </Suspense>
+  );
+}
+
+// 文章管理内容组件
+function AdminPostsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
