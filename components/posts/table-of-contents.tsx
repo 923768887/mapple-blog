@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { cn } from "@/lib/utils";
 import type { TocItem } from "@/lib/markdown";
 
@@ -11,6 +11,35 @@ interface TableOfContentsProps {
   className?: string;
 }
 
+// 辅助函数：根据 ID 查找 TocItem
+function findTocItemById(items: TocItem[], id: string): TocItem | null {
+  for (const item of items) {
+    if (item.id === id) return item;
+    if (item.children.length > 0) {
+      const found = findTocItemById(item.children, id);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+// 辅助函数：标准化文本用于比较
+function normalizeText(text: string): string {
+  return text.toLowerCase().replace(/\s+/g, ' ').trim();
+}
+
+// 辅助函数：获取所有标题 ID（扁平化）
+function getAllTocIds(items: TocItem[]): string[] {
+  const ids: string[] = [];
+  for (const item of items) {
+    ids.push(item.id);
+    if (item.children.length > 0) {
+      ids.push(...getAllTocIds(item.children));
+    }
+  }
+  return ids;
+}
+
 /**
  * 文章目录导航组件
  * 支持点击跳转、当前位置高亮、滚动和紧凑样式
@@ -19,17 +48,12 @@ interface TableOfContentsProps {
 export function TableOfContents({ toc, className }: TableOfContentsProps) {
   // 当前激活的标题 ID
   const [activeId, setActiveId] = useState<string>("");
+  // 用于存储实际找到的标题元素 ID 映射
+  const headingMapRef = useRef<Map<string, string>>(new Map());
 
   // 获取所有标题 ID（扁平化）
   const getAllIds = useCallback((items: TocItem[]): string[] => {
-    const ids: string[] = [];
-    for (const item of items) {
-      ids.push(item.id);
-      if (item.children.length > 0) {
-        ids.push(...getAllIds(item.children));
-      }
-    }
-    return ids;
+    return getAllTocIds(items);
   }, []);
 
   // 监听滚动，更新当前激活的标题
@@ -37,36 +61,78 @@ export function TableOfContents({ toc, className }: TableOfContentsProps) {
     if (toc.length === 0) return;
 
     const headingIds = getAllIds(toc);
-    const headingElements = headingIds
-      .map((id) => document.getElementById(id))
-      .filter((el): el is HTMLElement => el !== null);
+    
+    // 查找页面中所有的标题元素
+    const allHeadings = document.querySelectorAll('h1[id], h2[id], h3[id], h4[id], h5[id], h6[id]');
+    const headingElements: HTMLElement[] = [];
+    const idMap = new Map<string, string>();
+    
+    // 建立 toc ID 到实际 DOM ID 的映射
+    headingIds.forEach((tocId) => {
+      // 首先尝试直接匹配
+      let element = document.getElementById(tocId);
+      
+      // 如果没找到，尝试在所有标题中查找文本匹配的
+      if (!element) {
+        const tocItem = findTocItemById(toc, tocId);
+        if (tocItem) {
+          for (const heading of allHeadings) {
+            const headingText = heading.textContent?.trim() || '';
+            if (headingText === tocItem.text || normalizeText(headingText) === normalizeText(tocItem.text)) {
+              element = heading as HTMLElement;
+              break;
+            }
+          }
+        }
+      }
+      
+      if (element) {
+        headingElements.push(element);
+        idMap.set(element.id, tocId);
+      }
+    });
+    
+    headingMapRef.current = idMap;
 
     if (headingElements.length === 0) return;
 
-    // 使用 IntersectionObserver 监听标题可见性
-    const observer = new IntersectionObserver(
-      (entries) => {
-        // 找到所有可见的标题
-        const visibleEntries = entries.filter((entry) => entry.isIntersecting);
-        if (visibleEntries.length > 0) {
-          // 选择最靠近顶部的可见标题
-          const topEntry = visibleEntries.reduce((prev, curr) => {
-            return prev.boundingClientRect.top < curr.boundingClientRect.top
-              ? prev
-              : curr;
-          });
-          setActiveId(topEntry.target.id);
+    // 使用滚动事件来确定当前激活的标题
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      const headerOffset = 100; // 头部偏移量
+      
+      let currentActiveId = '';
+      
+      // 找到当前滚动位置对应的标题
+      for (let i = headingElements.length - 1; i >= 0; i--) {
+        const element = headingElements[i];
+        const elementTop = element.getBoundingClientRect().top + scrollTop;
+        
+        if (scrollTop >= elementTop - headerOffset) {
+          const domId = element.id;
+          currentActiveId = idMap.get(domId) || domId;
+          break;
         }
-      },
-      {
-        rootMargin: "-80px 0px -70% 0px",
-        threshold: 0,
       }
-    );
+      
+      // 如果没有找到，默认选择第一个
+      if (!currentActiveId && headingElements.length > 0) {
+        const firstId = headingElements[0].id;
+        currentActiveId = idMap.get(firstId) || firstId;
+      }
+      
+      setActiveId(currentActiveId);
+    };
 
-    headingElements.forEach((el) => observer.observe(el));
+    // 初始化时执行一次
+    handleScroll();
+    
+    // 添加滚动监听
+    window.addEventListener('scroll', handleScroll, { passive: true });
 
-    return () => observer.disconnect();
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
   }, [toc, getAllIds]);
 
   // 滚动到目录中当前激活的项
@@ -78,43 +144,74 @@ export function TableOfContents({ toc, className }: TableOfContentsProps) {
     }
   }, [activeId]);
 
+  // 点击目录项时滚动到对应标题
+  const handleTocClick = (e: React.MouseEvent, item: TocItem) => {
+    e.preventDefault();
+    
+    // 首先尝试直接通过 ID 查找
+    let element = document.getElementById(item.id);
+    
+    // 如果没找到，尝试通过文本内容查找
+    if (!element) {
+      const allHeadings = document.querySelectorAll('h1[id], h2[id], h3[id], h4[id], h5[id], h6[id]');
+      for (const heading of allHeadings) {
+        const headingText = heading.textContent?.trim() || '';
+        if (headingText === item.text || normalizeText(headingText) === normalizeText(item.text)) {
+          element = heading as HTMLElement;
+          break;
+        }
+      }
+    }
+    
+    if (element) {
+      // 计算滚动位置，考虑固定头部的高度
+      const headerOffset = 80;
+      const elementPosition = element.getBoundingClientRect().top + window.scrollY;
+      const offsetPosition = elementPosition - headerOffset;
+      
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth"
+      });
+      
+      // 更新 URL hash
+      window.history.pushState(null, "", `#${element.id}`);
+      setActiveId(item.id);
+    }
+  };
+
   // 渲染目录项
   const renderTocItem = (item: TocItem, depth: number = 0) => {
     const isActive = activeId === item.id;
     const paddingLeft = 8 + depth * 12;
 
     return (
-      <li key={item.id} className="relative">
-        {/* 激活指示器 */}
-        {isActive && (
-          <span className="absolute left-0 top-0 bottom-0 w-0.5 bg-primary rounded-full" />
-        )}
-        <a
-          href={`#${item.id}`}
-          data-toc-id={item.id}
-          onClick={(e) => {
-            e.preventDefault();
-            const element = document.getElementById(item.id);
-            if (element) {
-              // 平滑滚动到目标位置
-              element.scrollIntoView({ behavior: "smooth", block: "start" });
-              // 更新 URL hash
-              window.history.pushState(null, "", `#${item.id}`);
-              setActiveId(item.id);
-            }
-          }}
-          className={cn(
-            "block py-1 text-[13px] leading-snug transition-all duration-200",
-            "hover:text-foreground truncate",
-            isActive
-              ? "font-medium text-primary bg-primary/5 rounded-r"
-              : "text-muted-foreground hover:bg-muted/50 rounded-r"
+      <li key={item.id}>
+        {/* 链接容器 - 相对定位用于激活指示器 */}
+        <div className="relative">
+          {/* 激活指示器 - 只在当前链接旁边显示 */}
+          {isActive && (
+            <span 
+              className="absolute left-0 top-0 h-full w-0.5 bg-primary rounded-full" 
+            />
           )}
-          style={{ paddingLeft: `${paddingLeft}px`, paddingRight: "8px" }}
-          title={item.text}
-        >
-          {item.text}
-        </a>
+          <a
+            href={`#${item.id}`}
+            data-toc-id={item.id}
+            onClick={(e) => handleTocClick(e, item)}
+            className={cn(
+              "block py-1.5 text-[13px] leading-snug transition-all duration-200",
+              "hover:text-foreground truncate",
+              isActive
+                ? "font-medium text-primary bg-primary/10 rounded-r"
+                : "text-muted-foreground hover:bg-muted/50 rounded-r"
+            )}
+            style={{ paddingLeft: `${paddingLeft}px`, paddingRight: "8px" }}
+            title={item.text}
+          >
+            {item.text}
+          </a>
+        </div>
         {item.children.length > 0 && (
           <ul className="space-y-0.5">
             {item.children.map((child) => renderTocItem(child, depth + 1))}
