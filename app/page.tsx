@@ -188,16 +188,14 @@ async function getCategories() {
   return categories;
 }
 
-// 获取统计数据
+// 获取统计数据（顺序查询避免连接池溢出）
 async function getStats() {
-  const [postCount, tagCount, totalViews] = await Promise.all([
-    prisma.post.count({ where: { status: "PUBLISHED" } }),
-    prisma.tag.count(),
-    prisma.post.aggregate({
-      where: { status: "PUBLISHED" },
-      _sum: { views: true },
-    }),
-  ]);
+  const postCount = await prisma.post.count({ where: { status: "PUBLISHED" } });
+  const tagCount = await prisma.tag.count();
+  const totalViews = await prisma.post.aggregate({
+    where: { status: "PUBLISHED" },
+    _sum: { views: true },
+  });
 
   return {
     postCount,
@@ -261,14 +259,12 @@ async function PostListContent({
   );
 }
 
-// 侧边栏内容
+// 侧边栏内容（顺序查询避免连接池溢出）
 async function SidebarContent({ activeSlug }: { activeSlug?: string }) {
-  const [tags, categories, popularPosts, stats] = await Promise.all([
-    getTags(),
-    getCategories(),
-    getPopularPosts(),
-    getStats(),
-  ]);
+  const tags = await getTags();
+  const categories = await getCategories();
+  const popularPosts = await getPopularPosts();
+  const stats = await getStats();
 
   return (
     <div className="space-y-6">

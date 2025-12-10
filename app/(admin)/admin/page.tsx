@@ -17,43 +17,41 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-// 获取统计数据
+// 获取统计数据（顺序查询避免连接池溢出）
 async function getStats() {
-  const [totalPosts, draftPosts, publishedPosts, totalViews, recentPosts, categories, tags] = await Promise.all([
-    // 文章总数
-    prisma.post.count(),
-    // 草稿数
-    prisma.post.count({
-      where: { status: "DRAFT" },
-    }),
-    // 已发布数
-    prisma.post.count({
-      where: { status: "PUBLISHED" },
-    }),
-    // 总阅读量
-    prisma.post.aggregate({
-      _sum: { views: true },
-    }),
-    // 最近发布的 5 篇文章（按发布时间降序）
-    prisma.post.findMany({
-      where: { status: "PUBLISHED" },
-      orderBy: { publishedAt: "desc" },
-      take: 5,
-      select: {
-        id: true,
-        title: true,
-        slug: true,
-        status: true,
-        publishedAt: true,
-        createdAt: true,
-        views: true,
-      },
-    }),
-    // 分类数量
-    prisma.category.count(),
-    // 标签数量
-    prisma.tag.count(),
-  ]);
+  // 文章总数
+  const totalPosts = await prisma.post.count();
+  // 草稿数
+  const draftPosts = await prisma.post.count({
+    where: { status: "DRAFT" },
+  });
+  // 已发布数
+  const publishedPosts = await prisma.post.count({
+    where: { status: "PUBLISHED" },
+  });
+  // 总阅读量
+  const totalViews = await prisma.post.aggregate({
+    _sum: { views: true },
+  });
+  // 最近发布的 5 篇文章
+  const recentPosts = await prisma.post.findMany({
+    where: { status: "PUBLISHED" },
+    orderBy: { publishedAt: "desc" },
+    take: 5,
+    select: {
+      id: true,
+      title: true,
+      slug: true,
+      status: true,
+      publishedAt: true,
+      createdAt: true,
+      views: true,
+    },
+  });
+  // 分类数量
+  const categories = await prisma.category.count();
+  // 标签数量
+  const tags = await prisma.tag.count();
 
   return {
     totalPosts,
