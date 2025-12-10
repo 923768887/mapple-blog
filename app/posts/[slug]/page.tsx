@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
+import { cache } from "react";
 import prisma from "@/lib/prisma";
 import { parseMarkdown } from "@/lib/markdown";
 import { PostDetail, PostDetailData, AdjacentPost } from "@/components/posts";
@@ -9,10 +10,10 @@ interface PostPageProps {
 }
 
 /**
- * 获取文章详情数据
+ * 获取文章基础数据（使用 React cache 避免重复查询）
  */
-async function getPost(slug: string): Promise<PostDetailData | null> {
-  const post = await prisma.post.findUnique({
+const getPostData = cache(async (slug: string) => {
+  return prisma.post.findUnique({
     where: { slug },
     include: {
       author: {
@@ -43,17 +44,24 @@ async function getPost(slug: string): Promise<PostDetailData | null> {
       },
     },
   });
+});
+
+/**
+ * 获取文章详情数据
+ */
+async function getPost(slug: string): Promise<PostDetailData | null> {
+  const post = await getPostData(slug);
 
   // 文章不存在或未发布
   if (!post || post.status !== "PUBLISHED") {
     return null;
   }
 
-  // 增加阅读计数
-  await prisma.post.update({
+  // 异步增加阅读计数（不阻塞页面渲染）
+  prisma.post.update({
     where: { id: post.id },
     data: { views: { increment: 1 } },
-  });
+  }).catch(console.error);
 
   return {
     id: post.id,
@@ -107,7 +115,7 @@ async function getAdjacentPosts(
 }
 
 /**
- * 生成页面元数据
+ * 生成页面元数据（使用缓存的数据避免重复查询）
  * Requirements: 9.1, 9.2
  */
 export async function generateMetadata({
@@ -115,14 +123,8 @@ export async function generateMetadata({
 }: PostPageProps): Promise<Metadata> {
   const { slug } = await params;
   
-  const post = await prisma.post.findUnique({
-    where: { slug },
-    select: {
-      title: true,
-      summary: true,
-      coverUrl: true,
-    },
-  });
+  // 使用缓存的查询函数
+  const post = await getPostData(slug);
 
   if (!post) {
     return {

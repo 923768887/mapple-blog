@@ -52,14 +52,16 @@ export function PostCard({ post }: PostCardProps) {
     <Card className="group overflow-hidden transition-shadow hover:shadow-md">
       {/* 封面图 */}
       {post.coverUrl && (
-        <Link href={`/posts/${post.slug}`} className="block overflow-hidden">
-          <div className="relative aspect-video w-full overflow-hidden">
+        <Link href={`/posts/${post.slug}`} prefetch={true} className="block overflow-hidden">
+          <div className="relative aspect-video w-full overflow-hidden bg-muted">
             <Image
               src={post.coverUrl}
               alt={post.title}
               fill
               className="object-cover transition-transform duration-300 group-hover:scale-105"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              loading="lazy"
+              placeholder="empty"
             />
           </div>
         </Link>
@@ -79,6 +81,7 @@ export function PostCard({ post }: PostCardProps) {
         <CardTitle className="line-clamp-2">
           <Link
             href={`/posts/${post.slug}`}
+            prefetch={true}
             className="transition-colors hover:text-primary"
           >
             {post.title}
