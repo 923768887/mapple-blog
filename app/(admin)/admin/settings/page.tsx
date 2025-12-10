@@ -43,6 +43,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { applyThemeColor } from "@/components/theme-color-initializer";
 
 // 表单验证 schema
 const settingsSchema = z.object({
@@ -179,12 +180,6 @@ export default function SettingsPage() {
     } finally {
       setIsSaving(false);
     }
-  }
-
-  // 应用主题颜色
-  function applyThemeColor(color: string) {
-    // 将 HEX 转换为 oklch（简化处理，实际应用中可能需要更精确的转换）
-    document.documentElement.style.setProperty("--primary-custom", color);
   }
 
   if (isLoading) {

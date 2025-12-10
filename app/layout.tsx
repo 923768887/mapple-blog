@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Header, Footer } from "@/components/layout";
 import { generateRootMetadata } from "@/lib/metadata";
 import { Toaster } from "@/components/ui/sonner";
+import { ThemeColorInitializer } from "@/components/theme-color-initializer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,6 +33,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ThemeProvider>
+          <ThemeColorInitializer />
           <div className="flex min-h-screen flex-col bg-background text-foreground">
             <Header />
             <main className="flex-1">{children}</main>
