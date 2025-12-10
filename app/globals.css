@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 @plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:is(.dark *));
@@ -120,7 +121,6 @@
     @apply bg-background text-foreground;
   }
 }
-
 
 /* 代码高亮样式 - highlight.js github 主题 */
 .hljs {

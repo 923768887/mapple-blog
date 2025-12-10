@@ -1,67 +1,58 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import Link from "next/link";
-import { signOut } from "next-auth/react";
-import {
-  LayoutDashboard,
-  FileText,
-  Tags,
-  FolderOpen,
-  Settings,
-  LogOut,
-  Menu,
-  Home,
-} from "lucide-react";
+import { SessionProvider } from "next-auth/react";
 
-import { Button } from "@/components/ui/button";
+import { AdminSidebar } from "@/components/admin/admin-sidebar";
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import { Separator } from "@/components/ui/separator";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { cn } from "@/lib/utils";
 
-// 后台侧边栏导航配置
-const sidebarLinks = [
-  { href: "/admin", label: "仪表盘", icon: LayoutDashboard },
-  { href: "/admin/posts", label: "文章管理", icon: FileText },
-  { href: "/admin/tags", label: "标签管理", icon: Tags },
-  { href: "/admin/categories", label: "分类管理", icon: FolderOpen },
-  { href: "/admin/settings", label: "站点设置", icon: Settings },
-];
+// 生成面包屑路径
+function getBreadcrumbs(pathname: string): { href: string; label: string; isLast: boolean }[] {
+  const items: { href: string; label: string }[] = [];
+  
+  // 根据路径直接构建面包屑
+  if (pathname === "/admin") {
+    return [{ href: "/admin", label: "仪表盘", isLast: true }];
+  }
+  
+  // 添加仪表盘作为根
+  items.push({ href: "/admin", label: "仪表盘" });
+  
+  // 根据当前路径添加对应的面包屑
+  if (pathname.startsWith("/admin/posts")) {
+    items.push({ href: "/admin/posts", label: "文章管理" });
+    if (pathname === "/admin/posts/new") {
+      items.push({ href: "/admin/posts/new", label: "新建文章" });
+    } else if (pathname.includes("/edit")) {
+      items.push({ href: pathname, label: "编辑文章" });
+    }
+  } else if (pathname === "/admin/tags") {
+    items.push({ href: "/admin/tags", label: "标签管理" });
+  } else if (pathname === "/admin/categories") {
+    items.push({ href: "/admin/categories", label: "分类管理" });
+  } else if (pathname === "/admin/settings") {
+    items.push({ href: "/admin/settings", label: "站点设置" });
+  }
 
-// 侧边栏导航组件
-function SidebarNav({ onLinkClick }: { onLinkClick?: () => void }) {
-  const pathname = usePathname();
-
-  return (
-    <nav className="flex flex-col gap-1">
-      {sidebarLinks.map((link) => {
-        const Icon = link.icon;
-        const isActive = pathname === link.href;
-        
-        return (
-          <Link
-            key={link.href}
-            href={link.href}
-            onClick={onLinkClick}
-            className={cn(
-              "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
-              "hover:bg-accent hover:text-accent-foreground",
-              isActive && "bg-accent text-accent-foreground font-medium"
-            )}
-          >
-            <Icon className="h-4 w-4" />
-            {link.label}
-          </Link>
-        );
-      })}
-    </nav>
-  );
+  return items.map((item, index) => ({
+    href: item.href,
+    label: item.label,
+    isLast: index === items.length - 1,
+  }));
 }
 
 
@@ -71,102 +62,47 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+  const breadcrumbs = getBreadcrumbs(pathname);
+
   return (
-    <div className="flex min-h-screen">
-      {/* 桌面端侧边栏 - 在 lg 及以上屏幕显示 */}
-      <aside className="hidden w-64 flex-shrink-0 border-r bg-background lg:block">
-        <div className="flex h-full flex-col">
-          {/* 侧边栏头部 */}
-          <div className="flex h-14 items-center border-b px-4">
-            <Link href="/admin" className="flex items-center gap-2 font-semibold">
-              <div className="size-8 rounded-full bg-primary/15" />
-              <span>后台管理</span>
-            </Link>
-          </div>
-
-          {/* 侧边栏导航 */}
-          <div className="flex-1 overflow-y-auto p-4">
-            <SidebarNav />
-          </div>
-
-          {/* 侧边栏底部 */}
-          <div className="border-t p-4">
-            <div className="flex flex-col gap-2">
-              <Link
-                href="/"
-                className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-              >
-                <Home className="h-4 w-4" />
-                返回前台
-              </Link>
-              <button
-                onClick={() => signOut({ callbackUrl: "/" })}
-                className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-destructive hover:text-destructive-foreground"
-              >
-                <LogOut className="h-4 w-4" />
-                退出登录
-              </button>
+    <SessionProvider>
+      <SidebarProvider>
+        <AdminSidebar />
+        <SidebarInset>
+          <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+            <div className="flex flex-1 items-center gap-2 px-4">
+              <SidebarTrigger className="-ml-1" />
+              <Separator
+                orientation="vertical"
+                className="mr-2 data-[orientation=vertical]:h-4"
+              />
+              <Breadcrumb>
+                <BreadcrumbList>
+                  {breadcrumbs.map((item, index) => (
+                    <div key={item.href} className="flex items-center gap-2">
+                      {index > 0 && <BreadcrumbSeparator className="hidden md:block" />}
+                      <BreadcrumbItem className={index === 0 ? "hidden md:block" : ""}>
+                        {item.isLast ? (
+                          <BreadcrumbPage>{item.label}</BreadcrumbPage>
+                        ) : (
+                          <BreadcrumbLink href={item.href}>{item.label}</BreadcrumbLink>
+                        )}
+                      </BreadcrumbItem>
+                    </div>
+                  ))}
+                </BreadcrumbList>
+              </Breadcrumb>
             </div>
+            <div className="flex items-center gap-2 px-4">
+              <ThemeToggle />
+            </div>
+          </header>
+          <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+            {children}
           </div>
-        </div>
-      </aside>
-
-      {/* 主内容区域 */}
-      <div className="flex flex-1 flex-col">
-        {/* 移动端顶部导航栏 */}
-        <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b bg-background/70 px-4 backdrop-blur lg:hidden">
-          {/* 移动端汉堡菜单 */}
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" aria-label="打开菜单">
-                <Menu className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-64 p-0">
-              <SheetHeader className="border-b px-4 py-4">
-                <SheetTitle className="flex items-center gap-2 text-left">
-                  <div className="size-8 rounded-full bg-primary/15" />
-                  后台管理
-                </SheetTitle>
-              </SheetHeader>
-              <div className="flex h-[calc(100%-60px)] flex-col">
-                <div className="flex-1 overflow-y-auto p-4">
-                  <SidebarNav />
-                </div>
-                <div className="border-t p-4">
-                  <div className="flex flex-col gap-2">
-                    <Link
-                      href="/"
-                      className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-                    >
-                      <Home className="h-4 w-4" />
-                      返回前台
-                    </Link>
-                    <button
-                      onClick={() => signOut({ callbackUrl: "/" })}
-                      className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-destructive hover:text-destructive-foreground"
-                    >
-                      <LogOut className="h-4 w-4" />
-                      退出登录
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </SheetContent>
-          </Sheet>
-
-          {/* 移动端标题 */}
-          <span className="font-semibold">后台管理</span>
-
-          {/* 主题切换 */}
-          <ThemeToggle />
-        </header>
-
-        {/* 页面内容 */}
-        <main className="flex-1 overflow-y-auto bg-muted/30">
-          {children}
-        </main>
-      </div>
-    </div>
+        </SidebarInset>
+      </SidebarProvider>
+    </SessionProvider>
   );
 }
