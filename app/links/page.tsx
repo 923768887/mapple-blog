@@ -1,3 +1,15 @@
+import { Metadata } from "next";
+import { generateStaticPageMetadata } from "@/lib/metadata";
+
+/**
+ * 友链页面元数据
+ * Requirements: 9.1
+ */
+export const metadata: Metadata = generateStaticPageMetadata(
+  "友链",
+  "博客友情链接，欢迎互换友链"
+);
+
 const links = [
   { name: "Next.js", url: "https://nextjs.org", desc: "React 全栈框架" },
   { name: "Shadcn UI", url: "https://ui.shadcn.com", desc: "可复制的组件库" },

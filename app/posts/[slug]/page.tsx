@@ -4,6 +4,7 @@ import { cache } from "react";
 import prisma from "@/lib/prisma";
 import { parseMarkdown } from "@/lib/markdown";
 import { PostDetail, PostDetailData, AdjacentPost } from "@/components/posts";
+import { generatePostMetadata } from "@/lib/metadata";
 
 interface PostPageProps {
   params: Promise<{ slug: string }>;
@@ -116,6 +117,7 @@ async function getAdjacentPosts(
 
 /**
  * 生成页面元数据（使用缓存的数据避免重复查询）
+ * 包含 Open Graph 和 Twitter Card 元数据
  * Requirements: 9.1, 9.2
  */
 export async function generateMetadata({
@@ -132,22 +134,18 @@ export async function generateMetadata({
     };
   }
 
-  return {
+  // 使用统一的元数据生成工具函数
+  return generatePostMetadata({
     title: post.title,
-    description: post.summary || undefined,
-    openGraph: {
-      title: post.title,
-      description: post.summary || undefined,
-      type: "article",
-      images: post.coverUrl ? [post.coverUrl] : undefined,
+    slug: post.slug,
+    summary: post.summary,
+    coverUrl: post.coverUrl,
+    publishedAt: post.publishedAt?.toISOString() ?? null,
+    author: {
+      name: post.author.name,
     },
-    twitter: {
-      card: "summary_large_image",
-      title: post.title,
-      description: post.summary || undefined,
-      images: post.coverUrl ? [post.coverUrl] : undefined,
-    },
-  };
+    tags: post.tags.map((pt) => ({ name: pt.tag.name })),
+  });
 }
 
 /**

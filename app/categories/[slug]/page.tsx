@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 import { PostList, TagCloud, PostCardData, TagData } from "@/components/posts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { generateCategoryMetadata } from "@/lib/metadata";
 
 // 每页显示的文章数量
 const PAGE_SIZE = 10;
@@ -299,6 +300,7 @@ export default async function CategoryPage({
 }
 
 // 生成页面元数据
+// Requirements: 9.1
 export async function generateMetadata({ params }: CategoryPageProps) {
   const { slug } = await params;
   const category = await getCategory(slug);
@@ -309,8 +311,5 @@ export async function generateMetadata({ params }: CategoryPageProps) {
     };
   }
 
-  return {
-    title: `分类: ${category.name}`,
-    description: `查看「${category.name}」分类下的所有文章`,
-  };
+  return generateCategoryMetadata(category.name);
 }

@@ -1,3 +1,15 @@
+import { Metadata } from "next";
+import { generateStaticPageMetadata } from "@/lib/metadata";
+
+/**
+ * 关于页面元数据
+ * Requirements: 9.1
+ */
+export const metadata: Metadata = generateStaticPageMetadata(
+  "关于本站",
+  "了解博客作者的背景、技术方向和写作主题"
+);
+
 export default function AboutPage() {
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-4 px-6 py-10">

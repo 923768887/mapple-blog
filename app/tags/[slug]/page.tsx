@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 import { PostList, TagCloud, PostCardData, TagData } from "@/components/posts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { generateTagMetadata } from "@/lib/metadata";
 
 // 每页显示的文章数量
 const PAGE_SIZE = 10;
@@ -244,6 +245,7 @@ export default async function TagPage({ params, searchParams }: TagPageProps) {
 }
 
 // 生成页面元数据
+// Requirements: 9.1
 export async function generateMetadata({ params }: TagPageProps) {
   const { slug } = await params;
   const tag = await getTag(slug);
@@ -254,8 +256,5 @@ export async function generateMetadata({ params }: TagPageProps) {
     };
   }
 
-  return {
-    title: `标签: ${tag.name}`,
-    description: `查看所有标记为「${tag.name}」的文章`,
-  };
+  return generateTagMetadata(tag.name);
 }
