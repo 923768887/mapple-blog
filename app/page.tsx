@@ -14,6 +14,9 @@ import {
   Rss
 } from "lucide-react";
 
+// 强制动态渲染，避免构建时数据库连接问题
+export const dynamic = "force-dynamic";
+
 // 每页显示的文章数量
 const PAGE_SIZE = 10;
 

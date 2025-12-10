@@ -1,6 +1,9 @@
 import prisma from "@/lib/prisma";
 import { siteConfig } from "@/lib/metadata";
 
+// 强制动态渲染，避免构建时数据库连接问题
+export const dynamic = "force-dynamic";
+
 /**
  * RSS Feed 生成路由
  * 生成符合 RSS 2.0 规范的 feed，包含最新已发布文章

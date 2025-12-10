@@ -2,6 +2,9 @@ import { MetadataRoute } from "next";
 import prisma from "@/lib/prisma";
 import { siteConfig } from "@/lib/metadata";
 
+// 强制动态渲染，避免构建时数据库连接问题
+export const dynamic = "force-dynamic";
+
 /**
  * 生成站点地图
  * 包含所有已发布文章 URL 和静态页面 URL
