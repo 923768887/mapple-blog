@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -118,4 +119,91 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+
+/* 代码高亮样式 - highlight.js github 主题 */
+.hljs {
+  background: var(--muted);
+  color: var(--foreground);
+}
+
+.hljs-comment,
+.hljs-quote {
+  color: oklch(0.55 0.02 286);
+  font-style: italic;
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-subst {
+  color: oklch(0.6 0.2 280);
+  font-weight: 500;
+}
+
+.hljs-number,
+.hljs-literal,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag .hljs-attr {
+  color: oklch(0.65 0.18 30);
+}
+
+.hljs-string,
+.hljs-doctag {
+  color: oklch(0.6 0.15 150);
+}
+
+.hljs-title,
+.hljs-section,
+.hljs-selector-id {
+  color: oklch(0.55 0.2 260);
+  font-weight: 600;
+}
+
+.hljs-type,
+.hljs-class .hljs-title {
+  color: oklch(0.65 0.2 60);
+}
+
+.hljs-tag,
+.hljs-name,
+.hljs-attribute {
+  color: oklch(0.6 0.2 200);
+}
+
+.hljs-regexp,
+.hljs-link {
+  color: oklch(0.6 0.18 180);
+}
+
+.hljs-symbol,
+.hljs-bullet {
+  color: oklch(0.6 0.2 320);
+}
+
+.hljs-built_in,
+.hljs-builtin-name {
+  color: oklch(0.6 0.15 200);
+}
+
+.hljs-meta {
+  color: oklch(0.55 0.1 286);
+  font-weight: 500;
+}
+
+.hljs-deletion {
+  background: oklch(0.9 0.1 20);
+}
+
+.hljs-addition {
+  background: oklch(0.9 0.1 140);
+}
+
+.hljs-emphasis {
+  font-style: italic;
+}
+
+.hljs-strong {
+  font-weight: 700;
 }
