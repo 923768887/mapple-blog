@@ -38,9 +38,11 @@ export function MarkdownRenderer({ html, className }: MarkdownRendererProps) {
         // 列表样式
         "prose-li:marker:text-muted-foreground",
         // 表格样式
-        "prose-table:border prose-table:border-border",
-        "prose-th:bg-muted prose-th:border prose-th:border-border prose-th:px-3 prose-th:py-2",
-        "prose-td:border prose-td:border-border prose-td:px-3 prose-td:py-2",
+        "prose-table:w-full prose-table:border-collapse prose-table:border prose-table:border-border",
+        "prose-thead:bg-muted",
+        "prose-th:border prose-th:border-border prose-th:px-4 prose-th:py-2 prose-th:text-left prose-th:font-semibold",
+        "prose-td:border prose-td:border-border prose-td:px-4 prose-td:py-2",
+        "prose-tr:even:bg-muted/30",
         className
       )}
       dangerouslySetInnerHTML={{ __html: html }}

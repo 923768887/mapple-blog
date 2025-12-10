@@ -46,9 +46,12 @@ export async function GET(
       );
     }
 
+    // 解码 URL 编码的 slug（处理中文 slug 的情况）
+    const decodedSlug = decodeURIComponent(slug);
+
     // 根据 slug 查询文章详情，包含关联数据
     const post = await prisma.post.findUnique({
-      where: { slug },
+      where: { slug: decodedSlug },
       include: {
         author: {
           select: {

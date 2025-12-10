@@ -125,8 +125,11 @@ export async function generateMetadata({
 }: PostPageProps): Promise<Metadata> {
   const { slug } = await params;
   
+  // 解码 URL 编码的 slug（处理中文 slug 的情况）
+  const decodedSlug = decodeURIComponent(slug);
+  
   // 使用缓存的查询函数
-  const post = await getPostData(slug);
+  const post = await getPostData(decodedSlug);
 
   if (!post) {
     return {
@@ -155,8 +158,11 @@ export async function generateMetadata({
 export default async function PostPage({ params }: PostPageProps) {
   const { slug } = await params;
   
+  // 解码 URL 编码的 slug（处理中文 slug 的情况）
+  const decodedSlug = decodeURIComponent(slug);
+  
   // 获取文章数据
-  const post = await getPost(slug);
+  const post = await getPost(decodedSlug);
 
   if (!post) {
     notFound();

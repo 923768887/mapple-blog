@@ -7,22 +7,22 @@ export function cn(...inputs: ClassValue[]) {
 
 /**
  * 根据标题生成 URL 友好的 slug
- * 支持中文标题（转换为拼音风格的 slug）和英文标题
+ * 中文标题会生成基于时间戳的唯一 slug，英文标题保留原有逻辑
  * @param title 文章标题
- * @returns 生成的 slug
+ * @returns 生成的 slug（纯 ASCII 字符）
  */
 export function generateSlug(title: string): string {
   // 移除首尾空白
   let slug = title.trim().toLowerCase();
   
-  // 将空格和特殊字符替换为连字符
+  // 移除中文字符，只保留英文字母、数字和空格
   slug = slug
+    .replace(/[^\w\s-]/g, '')          // 移除非字母数字字符（包括中文）
     .replace(/[\s_]+/g, '-')           // 空格和下划线转为连字符
-    .replace(/[^\w\u4e00-\u9fa5-]/g, '') // 保留字母、数字、中文和连字符
-    .replace(/-+/g, '-')                // 多个连字符合并为一个
-    .replace(/^-|-$/g, '');             // 移除首尾连字符
+    .replace(/-+/g, '-')               // 多个连字符合并为一个
+    .replace(/^-|-$/g, '');            // 移除首尾连字符
   
-  // 如果 slug 为空（例如标题全是特殊字符），生成随机 slug
+  // 如果 slug 为空（例如标题全是中文），生成基于时间戳的 slug
   if (!slug) {
     slug = `post-${Date.now()}`;
   }

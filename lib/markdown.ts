@@ -8,6 +8,7 @@
 
 import { unified } from 'unified';
 import remarkParse from 'remark-parse';
+import remarkGfm from 'remark-gfm';
 import remarkRehype from 'remark-rehype';
 import rehypeStringify from 'rehype-stringify';
 import rehypeHighlight from 'rehype-highlight';
@@ -135,6 +136,7 @@ export function generateSlug(text: string): string {
  * 
  * 功能：
  * - 解析标准 Markdown 语法
+ * - 支持 GFM 扩展语法（表格、删除线、任务列表、自动链接等）
  * - 代码块语法高亮
  * - 自动为标题添加 ID（用于锚点）
  * - 为标题添加自动链接
@@ -145,6 +147,7 @@ export function generateSlug(text: string): string {
 export async function parseMarkdownToHtml(markdown: string): Promise<string> {
   const result = await unified()
     .use(remarkParse)
+    .use(remarkGfm) // 支持 GFM 扩展语法：表格、删除线、任务列表等
     .use(remarkRehype, { allowDangerousHtml: true })
     .use(rehypeSlug)
     .use(rehypeAutolinkHeadings, {
