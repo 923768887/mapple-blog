@@ -115,28 +115,39 @@ export default function SettingsPage() {
     },
   });
 
-  // 加载设置
+  // 加载设置 - 只在组件挂载时执行一次
   useEffect(() => {
+    let isMounted = true;
+    
     async function loadSettings() {
       try {
         const response = await fetch("/api/settings");
-        if (response.ok) {
+        if (response.ok && isMounted) {
           const data = await response.json();
           form.reset(data);
         }
       } catch (error) {
         console.error("加载设置失败:", error);
-        toast({
-          title: "加载失败",
-          description: "无法加载站点设置",
-          variant: "destructive",
-        });
+        if (isMounted) {
+          toast({
+            title: "加载失败",
+            description: "无法加载站点设置",
+            variant: "destructive",
+          });
+        }
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     }
     loadSettings();
-  }, [form, toast]);
+    
+    return () => {
+      isMounted = false;
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // 保存设置
   async function onSubmit(data: SettingsFormValues) {
@@ -379,18 +390,24 @@ export default function SettingsPage() {
                             <div className="flex items-center gap-4">
                               <div 
                                 className="h-12 w-12 rounded-lg border shadow-sm"
-                                style={{ backgroundColor: field.value }}
+                                style={{ backgroundColor: field.value || "#1a1a2e" }}
                               />
                               <Input
                                 type="text"
                                 placeholder="#1a1a2e"
-                                value={field.value}
-                                onChange={(e) => field.onChange(e.target.value)}
+                                value={field.value || ""}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  // 只有当值是有效的颜色格式时才更新
+                                  if (val === "" || /^#[0-9A-Fa-f]{0,6}$/.test(val)) {
+                                    field.onChange(val);
+                                  }
+                                }}
                                 className="w-32 font-mono"
                               />
                               <Input
                                 type="color"
-                                value={field.value}
+                                value={field.value && field.value.match(/^#[0-9A-Fa-f]{6}$/) ? field.value : "#1a1a2e"}
                                 onChange={(e) => field.onChange(e.target.value)}
                                 className="w-12 h-10 p-1 cursor-pointer"
                               />
@@ -411,7 +428,7 @@ export default function SettingsPage() {
                     <div className="flex flex-wrap gap-3">
                       <Button 
                         type="button"
-                        style={{ backgroundColor: form.watch("primaryColor") }}
+                        style={{ backgroundColor: form.watch("primaryColor") || "#1a1a2e" }}
                       >
                         主要按钮
                       </Button>
@@ -419,15 +436,15 @@ export default function SettingsPage() {
                         type="button"
                         variant="outline"
                         style={{ 
-                          borderColor: form.watch("primaryColor"),
-                          color: form.watch("primaryColor")
+                          borderColor: form.watch("primaryColor") || "#1a1a2e",
+                          color: form.watch("primaryColor") || "#1a1a2e"
                         }}
                       >
                         边框按钮
                       </Button>
                       <span 
                         className="inline-flex items-center"
-                        style={{ color: form.watch("primaryColor") }}
+                        style={{ color: form.watch("primaryColor") || "#1a1a2e" }}
                       >
                         链接文字
                       </span>
