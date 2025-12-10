@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { PostCard, PostCardData } from "@/components/posts";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, X } from "lucide-react";
+import { Search, X, Loader2 } from "lucide-react";
 
 // 搜索响应类型
 interface SearchResponse {
@@ -141,11 +141,26 @@ function SearchResults({ posts, query }: { posts: PostCardData[]; query: string 
   );
 }
 
-/**
- * 搜索页面
- * Requirements: 3.1, 3.3
- */
-export default function SearchPage() {
+// 页面加载状态
+function SearchPageLoading() {
+  return (
+    <div className="mx-auto w-full max-w-6xl px-4 py-8">
+      <div className="mb-8">
+        <h1 className="mb-6 text-2xl font-bold">搜索文章</h1>
+        <div className="flex w-full max-w-2xl items-center gap-2">
+          <Skeleton className="h-10 flex-1" />
+          <Skeleton className="h-10 w-20" />
+        </div>
+      </div>
+      <div className="flex items-center justify-center py-16">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    </div>
+  );
+}
+
+// 搜索页面内容组件（使用 useSearchParams）
+function SearchPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   
@@ -248,5 +263,17 @@ export default function SearchPage() {
         )}
       </main>
     </div>
+  );
+}
+
+/**
+ * 搜索页面
+ * Requirements: 3.1, 3.3
+ */
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<SearchPageLoading />}>
+      <SearchPageContent />
+    </Suspense>
   );
 }
