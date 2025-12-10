@@ -9,6 +9,10 @@ const nextConfig: NextConfig = {
         pathname: "/**",
       },
     ],
+    // 允许 SVG 图片（用于 DiceBear 头像）
+    dangerouslyAllowSVG: true,
+    contentDispositionType: "attachment",
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
 };
 

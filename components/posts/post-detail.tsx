@@ -71,9 +71,9 @@ export function PostDetail({
 }: PostDetailProps) {
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8">
-      <div className="grid gap-8 lg:grid-cols-[1fr,240px]">
+      <div className="relative lg:flex lg:gap-8">
         {/* 主内容区 */}
-        <main className="min-w-0">
+        <main className="min-w-0 flex-1">
           {/* 文章头部 */}
           <header className="mb-8 space-y-4">
             {/* 分类 */}
@@ -197,8 +197,8 @@ export function PostDetail({
           </nav>
         </main>
 
-        {/* 侧边栏 - 目录 */}
-        <aside className="hidden lg:block">
+        {/* 侧边栏 - 目录（固定在右侧） */}
+        <aside className="hidden lg:block lg:w-60 lg:shrink-0">
           <div className="sticky top-20">
             <TableOfContents toc={toc} />
           </div>
