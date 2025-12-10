@@ -122,10 +122,35 @@
   }
 }
 
-/* 代码高亮样式 - highlight.js github 主题 */
+/* 代码高亮样式 - 亮色主题 */
 .hljs {
-  background: var(--muted);
+  background: transparent !important;
   color: var(--foreground);
+}
+
+/* 代码块容器样式 */
+.prose pre {
+  background-color: oklch(0.96 0.001 286) !important;
+  overflow-x: auto;
+  color: oklch(0.2 0.005 286) !important;
+}
+
+.dark .prose pre {
+  background-color: oklch(0.18 0.006 286) !important;
+  color: oklch(0.9 0.005 286) !important;
+}
+
+/* 代码块内的代码元素 */
+.prose pre code {
+  background: transparent !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  color: inherit !important;
+}
+
+/* 确保没有语法高亮的代码块文字可见 */
+.prose pre code:not(.hljs) {
+  color: inherit !important;
 }
 
 .hljs-comment,
@@ -137,7 +162,7 @@
 .hljs-keyword,
 .hljs-selector-tag,
 .hljs-subst {
-  color: oklch(0.6 0.2 280);
+  color: oklch(0.5 0.25 280);
   font-weight: 500;
 }
 
@@ -146,49 +171,49 @@
 .hljs-variable,
 .hljs-template-variable,
 .hljs-tag .hljs-attr {
-  color: oklch(0.65 0.18 30);
+  color: oklch(0.55 0.2 30);
 }
 
 .hljs-string,
 .hljs-doctag {
-  color: oklch(0.6 0.15 150);
+  color: oklch(0.5 0.18 150);
 }
 
 .hljs-title,
 .hljs-section,
 .hljs-selector-id {
-  color: oklch(0.55 0.2 260);
+  color: oklch(0.45 0.22 260);
   font-weight: 600;
 }
 
 .hljs-type,
 .hljs-class .hljs-title {
-  color: oklch(0.65 0.2 60);
+  color: oklch(0.55 0.22 60);
 }
 
 .hljs-tag,
 .hljs-name,
 .hljs-attribute {
-  color: oklch(0.6 0.2 200);
+  color: oklch(0.5 0.22 200);
 }
 
 .hljs-regexp,
 .hljs-link {
-  color: oklch(0.6 0.18 180);
+  color: oklch(0.5 0.2 180);
 }
 
 .hljs-symbol,
 .hljs-bullet {
-  color: oklch(0.6 0.2 320);
+  color: oklch(0.5 0.22 320);
 }
 
 .hljs-built_in,
 .hljs-builtin-name {
-  color: oklch(0.6 0.15 200);
+  color: oklch(0.5 0.18 200);
 }
 
 .hljs-meta {
-  color: oklch(0.55 0.1 286);
+  color: oklch(0.5 0.12 286);
   font-weight: 500;
 }
 
@@ -206,4 +231,227 @@
 
 .hljs-strong {
   font-weight: 700;
+}
+
+/* 暗色模式代码高亮 */
+.dark .hljs-comment,
+.dark .hljs-quote {
+  color: oklch(0.6 0.02 286);
+}
+
+.dark .hljs-keyword,
+.dark .hljs-selector-tag,
+.dark .hljs-subst {
+  color: oklch(0.7 0.2 280);
+}
+
+.dark .hljs-number,
+.dark .hljs-literal,
+.dark .hljs-variable,
+.dark .hljs-template-variable,
+.dark .hljs-tag .hljs-attr {
+  color: oklch(0.75 0.18 30);
+}
+
+.dark .hljs-string,
+.dark .hljs-doctag {
+  color: oklch(0.7 0.15 150);
+}
+
+.dark .hljs-title,
+.dark .hljs-section,
+.dark .hljs-selector-id {
+  color: oklch(0.7 0.2 260);
+}
+
+.dark .hljs-type,
+.dark .hljs-class .hljs-title {
+  color: oklch(0.75 0.2 60);
+}
+
+.dark .hljs-tag,
+.dark .hljs-name,
+.dark .hljs-attribute {
+  color: oklch(0.7 0.2 200);
+}
+
+.dark .hljs-regexp,
+.dark .hljs-link {
+  color: oklch(0.7 0.18 180);
+}
+
+.dark .hljs-symbol,
+.dark .hljs-bullet {
+  color: oklch(0.7 0.2 320);
+}
+
+.dark .hljs-built_in,
+.dark .hljs-builtin-name {
+  color: oklch(0.7 0.15 200);
+}
+
+.dark .hljs-meta {
+  color: oklch(0.65 0.1 286);
+}
+
+.dark .hljs-deletion {
+  background: oklch(0.3 0.1 20);
+}
+
+.dark .hljs-addition {
+  background: oklch(0.3 0.1 140);
+}
+
+/* 自定义滚动条样式 */
+.scrollbar-thin {
+  scrollbar-width: thin;
+}
+
+.scrollbar-thumb-border {
+  scrollbar-color: var(--border) transparent;
+}
+
+.scrollbar-track-transparent {
+  scrollbar-color: var(--border) transparent;
+}
+
+/* Webkit 浏览器滚动条样式 */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
+}
+
+/* 目录滚动条悬停效果 */
+.hover\:scrollbar-thumb-muted-foreground\/50:hover::-webkit-scrollbar-thumb {
+  background: oklch(0.5 0.02 286 / 50%);
+}
+
+/* 文章内容优化样式 */
+.prose {
+  /* 优化文字渲染 */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* 标题锚点链接样式 */
+.prose .anchor-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.prose .anchor-link:hover {
+  text-decoration: none;
+}
+
+/* 标题悬停显示锚点图标 */
+.prose h1:hover::before,
+.prose h2:hover::before,
+.prose h3:hover::before,
+.prose h4:hover::before,
+.prose h5:hover::before,
+.prose h6:hover::before {
+  content: "#";
+  position: absolute;
+  left: -1.5em;
+  color: var(--primary);
+  opacity: 0.5;
+  font-weight: normal;
+}
+
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4,
+.prose h5,
+.prose h6 {
+  position: relative;
+}
+
+/* 代码块行号和复制按钮预留空间 */
+.prose pre {
+  position: relative;
+}
+
+/* 表格响应式滚动 */
+.prose table {
+  display: block;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+@media (min-width: 768px) {
+  .prose table {
+    display: table;
+    white-space: normal;
+  }
+}
+
+/* 图片居中和说明文字 */
+.prose figure {
+  margin: 2rem 0;
+  text-align: center;
+}
+
+.prose figcaption {
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+/* 任务列表样式 (GFM) */
+.prose ul:has(input[type="checkbox"]) {
+  list-style: none;
+  padding-left: 0;
+}
+
+.prose li:has(input[type="checkbox"]) {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.prose input[type="checkbox"] {
+  margin-top: 0.25rem;
+  accent-color: var(--primary);
+}
+
+/* 删除线样式 (GFM) */
+.prose del {
+  color: var(--muted-foreground);
+}
+
+/* 脚注样式 */
+.prose .footnotes {
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.875rem;
+}
+
+.prose .footnotes ol {
+  padding-left: 1.5rem;
+}
+
+/* 选中文本样式 */
+.prose ::selection {
+  background-color: oklch(0.8 0.15 260 / 30%);
+}
+
+.dark .prose ::selection {
+  background-color: oklch(0.5 0.15 260 / 40%);
 }
