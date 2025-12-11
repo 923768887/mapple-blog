@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { verifyPassword } from "@/lib/password";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  // 信任代理主机（Vercel 等平台需要）
+  trustHost: true,
   providers: [
     Credentials({
       name: "credentials",
@@ -63,5 +65,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
   session: {
     strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 天
   },
 });

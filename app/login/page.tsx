@@ -44,9 +44,10 @@ function LoginForm() {
         setIsLoading(false);
       } else if (result?.ok) {
         console.log("登录成功，跳转到:", callbackUrl);
-        // 使用 router 跳转，保留控制台日志
-        router.push(callbackUrl);
-        router.refresh();
+        // 延迟后使用硬刷新跳转，确保 cookie 生效
+        setTimeout(() => {
+          window.location.href = callbackUrl;
+        }, 100);
       } else {
         console.error("未知登录状态:", result);
         setError("登录状态异常，请重试");
