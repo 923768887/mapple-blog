@@ -1,9 +1,9 @@
 "use client";
 
 import * as React from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut, useSession } from "next-auth/react";
 import {
   LayoutDashboard,
   FileText,
@@ -87,12 +87,29 @@ const navItems = [
 
 // 用户导航组件
 function NavUser() {
-  const { data: session } = useSession();
-  const user = session?.user;
+  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
+
+  useEffect(() => {
+    // 获取当前用户信息
+    fetch("/api/auth/me")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.user) {
+          setUser(data.user);
+        }
+      })
+      .catch(console.error);
+  }, []);
 
   const userName = user?.name || "用户";
   const userEmail = user?.email || "";
   const userInitials = userName.slice(0, 2).toUpperCase();
+
+  // 登出处理
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    window.location.href = "/";
+  };
 
   return (
     <SidebarMenu>
@@ -141,7 +158,7 @@ function NavUser() {
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={() => signOut({ callbackUrl: "/" })}
+              onClick={handleLogout}
               className="text-destructive focus:text-destructive"
             >
               <LogOut className="size-4" />

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getSession } from "@/lib/session";
 import prisma from "@/lib/prisma";
 
 // 统计数据响应类型
@@ -22,8 +22,8 @@ export interface StatsResponse {
 export async function GET() {
   try {
     // 验证用户认证
-    const session = await auth();
-    if (!session?.user) {
+    const session = await getSession();
+    if (!session?.userId) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }

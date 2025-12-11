@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import { getSession } from "@/lib/session";
 import { generateSlug, generateUniqueSlug } from "@/lib/utils";
 
 // 创建文章请求体类型
@@ -42,9 +42,9 @@ export interface PostResponse {
  */
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth();
+    const session = await getSession();
     
-    if (!session?.user?.id) {
+    if (!session?.userId) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
@@ -66,8 +66,8 @@ export async function GET(request: NextRequest) {
     const where: any = {};
 
     // 非管理员只能看到自己的文章
-    if (session.user.role !== "ADMIN") {
-      where.authorId = session.user.id;
+    if (session.role !== "ADMIN") {
+      where.authorId = session.userId;
     }
 
     // 按状态筛选
@@ -146,9 +146,9 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // 验证用户认证状态
-    const session = await auth();
+    const session = await getSession();
     
-    if (!session?.user?.id) {
+    if (!session?.userId) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
@@ -201,7 +201,7 @@ export async function POST(request: NextRequest) {
         coverUrl: body.coverUrl || null,
         status,
         publishedAt,
-        authorId: session.user.id,
+        authorId: session.userId,
         categoryId: body.categoryId || null,
         // 创建标签关联
         tags: body.tagIds && body.tagIds.length > 0

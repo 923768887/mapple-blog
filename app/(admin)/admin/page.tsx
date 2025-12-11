@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth";
+import { getSession } from "@/lib/session";
 import prisma from "@/lib/prisma";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -175,7 +175,7 @@ function QuickActionButton({
 }
 
 export default async function AdminDashboardPage() {
-  const session = await auth();
+  const session = await getSession();
   const stats = await getStats();
 
   // 获取当前时间段问候语
@@ -194,7 +194,7 @@ export default async function AdminDashboardPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
-            {getGreeting()}，{session?.user?.name || "管理员"} 👋
+            {getGreeting()}，{session?.name || "管理员"} 👋
           </h1>
           <p className="text-muted-foreground mt-1">
             欢迎回到博客管理后台，今天想写点什么？

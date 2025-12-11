@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import { getSession } from "@/lib/session";
 import { generateSlug, generateUniqueSlug } from "@/lib/utils";
 
 // 更新文章请求体类型
@@ -45,9 +45,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth();
+    const session = await getSession();
     
-    if (!session?.user?.id) {
+    if (!session?.userId) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
@@ -88,7 +88,7 @@ export async function GET(
     }
 
     // 验证用户是否有权限访问（作者本人或管理员）
-    if (post.authorId !== session.user.id && session.user.role !== "ADMIN") {
+    if (post.authorId !== session.userId && session.role !== "ADMIN") {
       return NextResponse.json(
         { error: "Forbidden" },
         { status: 403 }
@@ -132,9 +132,9 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth();
+    const session = await getSession();
     
-    if (!session?.user?.id) {
+    if (!session?.userId) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
@@ -163,7 +163,7 @@ export async function PUT(
     }
 
     // 验证用户权限（作者本人或管理员）
-    if (existingPost.authorId !== session.user.id && session.user.role !== "ADMIN") {
+    if (existingPost.authorId !== session.userId && session.role !== "ADMIN") {
       return NextResponse.json(
         { error: "Forbidden" },
         { status: 403 }
@@ -311,9 +311,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth();
+    const session = await getSession();
     
-    if (!session?.user?.id) {
+    if (!session?.userId) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
@@ -342,7 +342,7 @@ export async function DELETE(
     }
 
     // 验证用户权限（作者本人或管理员）
-    if (existingPost.authorId !== session.user.id && session.user.role !== "ADMIN") {
+    if (existingPost.authorId !== session.userId && session.role !== "ADMIN") {
       return NextResponse.json(
         { error: "Forbidden" },
         { status: 403 }

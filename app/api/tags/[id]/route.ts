@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import { getSession } from "@/lib/session";
 import { generateSlug, generateUniqueSlug } from "@/lib/utils";
 
 // 更新标签请求体类型
@@ -79,9 +79,9 @@ export async function PUT(
 ) {
   try {
     // 验证用户认证状态
-    const session = await auth();
+    const session = await getSession();
 
-    if (!session?.user?.id) {
+    if (!session?.userId) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
@@ -191,9 +191,9 @@ export async function DELETE(
 ) {
   try {
     // 验证用户认证状态
-    const session = await auth();
+    const session = await getSession();
 
-    if (!session?.user?.id) {
+    if (!session?.userId) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }

@@ -7,7 +7,7 @@
 
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import { getSession } from "@/lib/session";
 
 // 默认设置值
 const defaultSettings: Record<string, string> = {
@@ -60,8 +60,8 @@ export async function GET() {
 export async function PUT(request: Request) {
   try {
     // 验证登录状态
-    const session = await auth();
-    if (!session?.user) {
+    const session = await getSession();
+    if (!session?.userId) {
       return NextResponse.json(
         { error: "未授权" },
         { status: 401 }
