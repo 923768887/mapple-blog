@@ -33,6 +33,13 @@ const defaultSettings: Record<string, string> = {
   // 页脚信息
   footerText: "© 2024 My Blog. All rights reserved.",
   footerIcp: "",
+  // 关于页面
+  aboutAvatar: "",
+  aboutName: "",
+  aboutTitle: "",
+  aboutBio: "",
+  aboutSkills: "",
+  aboutLocation: "",
 };
 
 // 获取所有设置

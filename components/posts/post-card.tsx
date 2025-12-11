@@ -2,17 +2,10 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Eye, Calendar } from "lucide-react";
+import { Eye, Calendar, ArrowUpRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 // 文章卡片数据类型
 export interface PostCardData {
@@ -42,103 +35,152 @@ export interface PostCardData {
 
 interface PostCardProps {
   post: PostCardData;
+  // 是否为特色文章（第一篇）
+  featured?: boolean;
 }
 
 /**
- * 单篇文章卡片组件
- * 显示文章标题、摘要、标签、发布日期等信息
- * 移动端优化：更紧凑的布局和更好的触摸体验
+ * 文章卡片组件
+ * 现代化设计，支持特色文章展示
  */
-export function PostCard({ post }: PostCardProps) {
+export function PostCard({ post, featured = false }: PostCardProps) {
   return (
-    <Card className="group overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-primary/20 active:scale-[0.99]">
-      {/* 封面图 */}
-      {post.coverUrl && (
-        <Link 
-          href={`/posts/${post.slug}`} 
-          prefetch={true} 
-          className="block overflow-hidden"
-        >
-          <div className="relative aspect-[16/9] w-full overflow-hidden bg-muted">
+    <article
+      className={cn(
+        "group relative flex flex-col overflow-hidden rounded-2xl border bg-card transition-all duration-300",
+        "hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1",
+        featured && "sm:col-span-2 sm:flex-row"
+      )}
+    >
+      {/* 封面图区域 */}
+      <Link
+        href={`/posts/${post.slug}`}
+        prefetch={true}
+        className={cn(
+          "relative block overflow-hidden bg-muted",
+          featured ? "sm:w-1/2" : "aspect-[16/9]"
+        )}
+      >
+        {post.coverUrl ? (
+          <>
             <Image
               src={post.coverUrl}
               alt={post.title}
               fill
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+              sizes={featured 
+                ? "(max-width: 640px) 100vw, 50vw" 
+                : "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              }
               loading="lazy"
-              placeholder="empty"
             />
             {/* 渐变遮罩 */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+          </>
+        ) : (
+          // 无封面时的占位
+          <div className={cn(
+            "flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5",
+            featured ? "h-full min-h-[200px]" : "aspect-[16/9]"
+          )}>
+            <span className="text-4xl opacity-50">📝</span>
           </div>
-        </Link>
-      )}
-
-      <CardHeader className="p-4 pb-2 sm:p-6 sm:pb-2">
-        {/* 分类 */}
-        {post.category && (
-          <Link
-            href={`/categories/${post.category.slug}`}
-            className="inline-block text-xs font-medium text-primary hover:underline mb-1"
-          >
-            {post.category.name}
-          </Link>
         )}
+
+        {/* 分类标签 - 悬浮在图片上 */}
+        {post.category && (
+          <div className="absolute top-3 left-3 z-10">
+            <Badge 
+              className="bg-white/90 text-foreground backdrop-blur-sm hover:bg-white shadow-sm"
+            >
+              {post.category.name}
+            </Badge>
+          </div>
+        )}
+
+        {/* 阅读量 - 悬浮在图片右上角 */}
+        <div className="absolute top-3 right-3 z-10">
+          <div className="flex items-center gap-1 rounded-full bg-black/50 px-2 py-1 text-xs text-white backdrop-blur-sm">
+            <Eye className="h-3 w-3" />
+            <span>{post.views}</span>
+          </div>
+        </div>
+      </Link>
+
+      {/* 内容区域 */}
+      <div className={cn(
+        "flex flex-1 flex-col p-5",
+        featured && "sm:p-6 sm:justify-center"
+      )}>
         {/* 标题 */}
-        <CardTitle className="text-base sm:text-lg leading-snug">
+        <h2 className={cn(
+          "font-bold leading-tight tracking-tight",
+          featured ? "text-xl sm:text-2xl" : "text-lg",
+          "line-clamp-2"
+        )}>
           <Link
             href={`/posts/${post.slug}`}
             prefetch={true}
-            className="line-clamp-2 transition-colors hover:text-primary"
+            className="transition-colors hover:text-primary"
           >
             {post.title}
           </Link>
-        </CardTitle>
-        {/* 发布日期和阅读量 */}
-        <CardDescription className="flex items-center gap-3 text-xs mt-2">
-          {post.publishedAt && (
-            <span className="flex items-center gap-1">
-              <Calendar className="h-3 w-3" />
-              <time dateTime={post.publishedAt}>
-                {formatDate(post.publishedAt)}
-              </time>
-            </span>
-          )}
-          <span className="flex items-center gap-1">
-            <Eye className="h-3 w-3" />
-            {post.views}
-          </span>
-        </CardDescription>
-      </CardHeader>
+        </h2>
 
-      <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
         {/* 摘要 */}
         {post.summary && (
-          <p className="line-clamp-2 sm:line-clamp-3 text-sm text-muted-foreground leading-relaxed">
+          <p className={cn(
+            "mt-3 text-muted-foreground leading-relaxed",
+            featured ? "line-clamp-3 text-sm sm:text-base" : "line-clamp-2 text-sm"
+          )}>
             {post.summary}
           </p>
         )}
-      </CardContent>
 
-      <CardFooter className="p-4 pt-0 sm:p-6 sm:pt-0 flex flex-wrap gap-1.5">
-        {/* 标签列表 */}
-        {post.tags.slice(0, 3).map((tag) => (
-          <Link key={tag.id} href={`/tags/${tag.slug}`}>
-            <Badge 
-              variant="secondary" 
-              className="text-xs hover:bg-primary hover:text-primary-foreground transition-colors"
-            >
-              #{tag.name}
-            </Badge>
-          </Link>
-        ))}
-        {post.tags.length > 3 && (
-          <Badge variant="outline" className="text-xs">
-            +{post.tags.length - 3}
-          </Badge>
+        {/* 标签 */}
+        {post.tags.length > 0 && (
+          <div className="mt-2 mb-3 flex flex-wrap gap-1.5">
+            {post.tags.slice(0, featured ? 4 : 3).map((tag) => (
+              <Link key={tag.id} href={`/tags/${tag.slug}`}>
+                <Badge
+                  variant="secondary"
+                  className="text-xs font-normal hover:bg-primary/10 hover:text-primary transition-colors"
+                >
+                  #{tag.name}
+                </Badge>
+              </Link>
+            ))}
+            {post.tags.length > (featured ? 4 : 3) && (
+              <Badge variant="outline" className="text-xs font-normal">
+                +{post.tags.length - (featured ? 4 : 3)}
+              </Badge>
+            )}
+          </div>
         )}
-      </CardFooter>
-    </Card>
+
+        {/* 底部信息栏 */}
+        <div className="mt-auto pt-4 flex items-center justify-between border-t border-border/50">
+          {/* 发布日期 */}
+          {post.publishedAt && (
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Calendar className="h-3.5 w-3.5" />
+              <time dateTime={post.publishedAt}>
+                {formatDate(post.publishedAt)}
+              </time>
+            </div>
+          )}
+
+          {/* 阅读更多按钮 */}
+          <Link
+            href={`/posts/${post.slug}`}
+            prefetch={true}
+            className="flex items-center gap-1 text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            阅读
+            <ArrowUpRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+      </div>
+    </article>
   );
 }

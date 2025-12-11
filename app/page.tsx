@@ -1,17 +1,17 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import prisma from "@/lib/prisma";
-import { PostList, TagCloud, PostCardData, TagData } from "@/components/posts";
+import { InfinitePostList, TagCloud, PostCardData, TagData } from "@/components/posts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { 
-  ArrowRight, 
-  Sparkles, 
-  TrendingUp, 
-  Clock, 
+import {
+  ArrowRight,
+  Sparkles,
+  TrendingUp,
+  Clock,
   BookOpen,
-  Rss
+  Rss,
 } from "lucide-react";
 
 // 强制动态渲染，避免构建时数据库连接问题
@@ -22,7 +22,6 @@ const PAGE_SIZE = 10;
 
 interface HomePageProps {
   searchParams: Promise<{
-    page?: string;
     tagSlug?: string;
     categorySlug?: string;
   }>;
@@ -236,25 +235,24 @@ function SidebarSkeleton() {
   );
 }
 
-// 文章列表内容
+// 文章列表内容（无限滚动）
 async function PostListContent({
-  page,
   tagSlug,
   categorySlug,
 }: {
-  page: number;
   tagSlug?: string;
   categorySlug?: string;
 }) {
-  const { posts, total } = await getPosts(page, tagSlug, categorySlug);
-  const totalPages = Math.ceil(total / PAGE_SIZE);
+  const { posts, total } = await getPosts(1, tagSlug, categorySlug);
+  const hasMore = total > PAGE_SIZE;
 
   return (
-    <PostList
-      posts={posts}
-      currentPage={page}
-      totalPages={totalPages}
-      basePath="/"
+    <InfinitePostList
+      initialPosts={posts}
+      initialHasMore={hasMore}
+      tagSlug={tagSlug}
+      categorySlug={categorySlug}
+      pageSize={PAGE_SIZE}
     />
   );
 }
@@ -267,24 +265,24 @@ async function SidebarContent({ activeSlug }: { activeSlug?: string }) {
   const stats = await getStats();
 
   return (
-    <div className="space-y-6">
-      {/* 博客统计 */}
-      <div className="rounded-xl border bg-gradient-to-br from-primary/5 to-primary/10 p-5">
-        <h3 className="flex items-center gap-2 text-sm font-semibold mb-4">
+    <div className="space-y-4">
+      {/* 博客统计 - 更紧凑 */}
+      <div className="rounded-lg border bg-gradient-to-br from-primary/5 to-primary/10 p-4">
+        <h3 className="flex items-center gap-2 text-sm font-semibold mb-3">
           <Sparkles className="h-4 w-4 text-primary" />
           博客统计
         </h3>
-        <div className="grid grid-cols-3 gap-3 text-center">
-          <div className="rounded-lg bg-background/80 p-3">
-            <div className="text-2xl font-bold text-primary">{stats.postCount}</div>
+        <div className="grid grid-cols-3 gap-2 text-center">
+          <div className="rounded-md bg-background/80 p-2">
+            <div className="text-xl font-bold text-primary">{stats.postCount}</div>
             <div className="text-xs text-muted-foreground">文章</div>
           </div>
-          <div className="rounded-lg bg-background/80 p-3">
-            <div className="text-2xl font-bold text-primary">{stats.tagCount}</div>
+          <div className="rounded-md bg-background/80 p-2">
+            <div className="text-xl font-bold text-primary">{stats.tagCount}</div>
             <div className="text-xs text-muted-foreground">标签</div>
           </div>
-          <div className="rounded-lg bg-background/80 p-3">
-            <div className="text-2xl font-bold text-primary">
+          <div className="rounded-md bg-background/80 p-2">
+            <div className="text-xl font-bold text-primary">
               {stats.totalViews > 1000 
                 ? `${(stats.totalViews / 1000).toFixed(1)}k` 
                 : stats.totalViews}
@@ -294,22 +292,22 @@ async function SidebarContent({ activeSlug }: { activeSlug?: string }) {
         </div>
       </div>
 
-      {/* 热门文章 */}
+      {/* 热门文章 - 更紧凑 */}
       {popularPosts.length > 0 && (
-        <div className="rounded-xl border p-5">
-          <h3 className="flex items-center gap-2 text-sm font-semibold mb-4">
+        <div className="rounded-lg border p-4">
+          <h3 className="flex items-center gap-2 text-sm font-semibold mb-3">
             <TrendingUp className="h-4 w-4 text-orange-500" />
             热门文章
           </h3>
-          <div className="space-y-3">
+          <div className="space-y-2">
             {popularPosts.slice(0, 5).map((post, index) => (
               <Link
                 key={post.id}
                 href={`/posts/${post.slug}`}
-                className="group flex items-start gap-3 rounded-lg p-2 -mx-2 transition-colors hover:bg-muted"
+                className="group flex items-start gap-2 rounded-md p-1.5 -mx-1.5 transition-colors hover:bg-muted"
               >
                 <span className={`
-                  flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold
+                  flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-bold
                   ${index === 0 ? 'bg-orange-500 text-white' : 
                     index === 1 ? 'bg-orange-400 text-white' : 
                     index === 2 ? 'bg-orange-300 text-white' : 
@@ -318,10 +316,10 @@ async function SidebarContent({ activeSlug }: { activeSlug?: string }) {
                   {index + 1}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium line-clamp-2 group-hover:text-primary transition-colors">
+                  <p className="text-sm leading-tight line-clamp-2 group-hover:text-primary transition-colors">
                     {post.title}
                   </p>
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="text-xs text-muted-foreground mt-0.5">
                     {post.views} 阅读
                   </p>
                 </div>
@@ -331,24 +329,24 @@ async function SidebarContent({ activeSlug }: { activeSlug?: string }) {
         </div>
       )}
 
-      {/* 分类 */}
+      {/* 分类 - 更紧凑 */}
       {categories.length > 0 && (
-        <div className="rounded-xl border p-5">
-          <h3 className="flex items-center gap-2 text-sm font-semibold mb-4">
+        <div className="rounded-lg border p-4">
+          <h3 className="flex items-center gap-2 text-sm font-semibold mb-3">
             <BookOpen className="h-4 w-4 text-blue-500" />
             文章分类
           </h3>
-          <div className="space-y-2">
+          <div className="space-y-1">
             {categories.map((category) => (
               <Link
                 key={category.id}
                 href={`/categories/${category.slug}`}
-                className="flex items-center justify-between rounded-lg p-2 -mx-2 transition-colors hover:bg-muted group"
+                className="flex items-center justify-between rounded-md p-1.5 -mx-1.5 transition-colors hover:bg-muted group"
               >
                 <span className="text-sm group-hover:text-primary transition-colors">
                   {category.name}
                 </span>
-                <Badge variant="secondary" className="text-xs">
+                <Badge variant="secondary" className="text-xs h-5 px-1.5">
                   {category._count.posts}
                 </Badge>
               </Link>
@@ -357,26 +355,30 @@ async function SidebarContent({ activeSlug }: { activeSlug?: string }) {
         </div>
       )}
 
-      {/* 标签云 */}
-      <div className="rounded-xl border p-5">
+      {/* 标签云 - 更紧凑 */}
+      <div className="rounded-lg border p-4">
         <TagCloud tags={tags} activeSlug={activeSlug} />
       </div>
 
-      {/* 订阅 */}
-      <div className="rounded-xl border bg-gradient-to-br from-blue-500/10 to-purple-500/10 p-5">
-        <h3 className="flex items-center gap-2 text-sm font-semibold mb-2">
-          <Rss className="h-4 w-4 text-orange-500" />
-          订阅更新
-        </h3>
-        <p className="text-xs text-muted-foreground mb-4">
-          通过 RSS 订阅获取最新文章
-        </p>
-        <Link href="/rss.xml" target="_blank">
-          <Button variant="outline" size="sm" className="w-full gap-2">
-            <Rss className="h-4 w-4" />
-            RSS 订阅
-          </Button>
-        </Link>
+      {/* 订阅 - 更紧凑 */}
+      <div className="rounded-lg border bg-gradient-to-br from-blue-500/10 to-purple-500/10 p-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="flex items-center gap-2 text-sm font-semibold">
+              <Rss className="h-4 w-4 text-orange-500" />
+              RSS 订阅
+            </h3>
+            <p className="text-xs text-muted-foreground mt-1">
+              获取最新文章
+            </p>
+          </div>
+          <Link href="/rss.xml" target="_blank">
+            <Button variant="outline" size="sm" className="gap-1.5">
+              <Rss className="h-3.5 w-3.5" />
+              订阅
+            </Button>
+          </Link>
+        </div>
       </div>
     </div>
   );
@@ -388,15 +390,14 @@ async function SidebarContent({ activeSlug }: { activeSlug?: string }) {
  */
 export default async function HomePage({ searchParams }: HomePageProps) {
   const params = await searchParams;
-  const page = Math.max(1, parseInt(params.page || "1", 10));
   const tagSlug = params.tagSlug;
   const categorySlug = params.categorySlug;
   const isFiltered = !!tagSlug || !!categorySlug;
 
   return (
     <div className="min-h-screen">
-      {/* Hero 区域 - 仅在首页第一页且无筛选时显示 */}
-      {page === 1 && !isFiltered && (
+      {/* Hero 区域 - 仅在首页无筛选时显示 */}
+      {!isFiltered && (
         <section className="relative overflow-hidden border-b bg-gradient-to-b from-primary/5 via-background to-background">
           {/* 装饰背景 */}
           <div className="absolute inset-0 -z-10">
@@ -437,9 +438,9 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
       {/* 主内容区 */}
       <div className="mx-auto w-full max-w-6xl px-4 py-8 md:py-12" id="posts">
-        <div className="grid gap-8 lg:grid-cols-[1fr,320px] lg:gap-12">
+        <div className="relative flex gap-6 lg:gap-8">
           {/* 文章列表 */}
-          <main>
+          <main className="min-w-0 flex-1">
             {/* 标题区域 */}
             <div className="mb-8 flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -464,15 +465,14 @@ export default async function HomePage({ searchParams }: HomePageProps) {
             
             <Suspense fallback={<PostListSkeleton />}>
               <PostListContent
-                page={page}
                 tagSlug={tagSlug}
                 categorySlug={categorySlug}
               />
             </Suspense>
           </main>
 
-          {/* 侧边栏 */}
-          <aside className="hidden lg:block">
+          {/* 侧边栏 - 固定在右侧 */}
+          <aside className="hidden w-[280px] shrink-0 lg:block">
             <div className="sticky top-20">
               <Suspense fallback={<SidebarSkeleton />}>
                 <SidebarContent activeSlug={tagSlug} />

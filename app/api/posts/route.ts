@@ -1,52 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-export interface GetPostsResponse {
-  posts: Array<{
-    id: string;
-    title: string;
-    slug: string;
-    summary: string | null;
-    coverUrl: string | null;
-    status: "DRAFT" | "PUBLISHED";
-    views: number;
-    publishedAt: string | null;
-    createdAt: string;
-    updatedAt: string;
-    author: {
-      id: string;
-      name: string | null;
-      avatarUrl: string | null;
-    };
-    category: {
-      id: string;
-      name: string;
-      slug: string;
-    } | null;
-    tags: Array<{
-      id: string;
-      name: string;
-      slug: string;
-    }>;
-  }>;
-  total: number;
-  page: number;
-  pageSize: number;
-}
-
+/**
+ * 获取已发布的文章列表（公开 API，支持分页）
+ */
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    
-    // 解析分页参数
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
-    const pageSize = Math.min(100, Math.max(1, parseInt(searchParams.get("pageSize") || "10", 10)));
-    
-    // 解析筛选参数
-    const tagSlug = searchParams.get("tagSlug");
-    const categorySlug = searchParams.get("categorySlug");
-    
-    // 构建查询条件 - 仅返回已发布文章
+    const pageSize = Math.min(20, Math.max(1, parseInt(searchParams.get("pageSize") || "10", 10)));
+    const tagSlug = searchParams.get("tagSlug") || undefined;
+    const categorySlug = searchParams.get("categorySlug") || undefined;
+
+    // 构建查询条件
     const where: {
       status: "PUBLISHED";
       tags?: { some: { tag: { slug: string } } };
@@ -55,7 +21,6 @@ export async function GET(request: NextRequest) {
       status: "PUBLISHED",
     };
 
-    // 按标签筛选
     if (tagSlug) {
       where.tags = {
         some: {
@@ -65,18 +30,17 @@ export async function GET(request: NextRequest) {
         },
       };
     }
-    
-    // 按分类筛选
+
     if (categorySlug) {
       where.category = {
         slug: categorySlug,
       };
     }
-    
-    // 获取总数用于分页
+
+    // 获取总数
     const total = await prisma.post.count({ where });
-    
-    // 获取文章列表，按发布日期降序排序
+
+    // 获取文章列表
     const posts = await prisma.post.findMany({
       where,
       orderBy: {
@@ -112,36 +76,38 @@ export async function GET(request: NextRequest) {
         },
       },
     });
-    
-    // 转换响应数据，扁平化标签结构
+
+    // 转换数据格式
     const transformedPosts = posts.map((post) => ({
       id: post.id,
       title: post.title,
       slug: post.slug,
       summary: post.summary,
       coverUrl: post.coverUrl,
-      status: post.status,
       views: post.views,
       publishedAt: post.publishedAt?.toISOString() ?? null,
-      createdAt: post.createdAt.toISOString(),
-      updatedAt: post.updatedAt.toISOString(),
       author: post.author,
       category: post.category,
       tags: post.tags.map((pt) => pt.tag),
     }));
-    
-    const response: GetPostsResponse = {
+
+    const totalPages = Math.ceil(total / pageSize);
+    const hasMore = page < totalPages;
+
+    return NextResponse.json({
       posts: transformedPosts,
-      total,
-      page,
-      pageSize,
-    };
-    
-    return NextResponse.json(response);
+      pagination: {
+        page,
+        pageSize,
+        total,
+        totalPages,
+        hasMore,
+      },
+    });
   } catch (error) {
-    console.error("Error fetching posts:", error);
+    console.error("获取文章列表失败:", error);
     return NextResponse.json(
-      { error: "Failed to fetch posts" },
+      { error: "获取文章列表失败" },
       { status: 500 }
     );
   }

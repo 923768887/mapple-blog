@@ -3,9 +3,9 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Header, Footer } from "@/components/layout";
-import { generateRootMetadata } from "@/lib/metadata";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeColorInitializer } from "@/components/theme-color-initializer";
+import prisma from "@/lib/prisma";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,11 +18,66 @@ const geistMono = Geist_Mono({
 });
 
 /**
- * 根布局元数据配置
- * 包含 title、description、keywords 等基础 meta 标签
- * Requirements: 9.1
+ * 动态生成根布局元数据
+ * 从数据库读取站点设置
  */
-export const metadata: Metadata = generateRootMetadata();
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const settings = await prisma.setting.findMany({
+      where: {
+        key: {
+          in: ["siteName", "siteDescription", "siteKeywords", "siteUrl"],
+        },
+      },
+    });
+
+    const settingsMap: Record<string, string> = {};
+    for (const setting of settings) {
+      settingsMap[setting.key] = setting.value;
+    }
+
+    const siteName = settingsMap.siteName || "My Blog";
+    const siteDescription = settingsMap.siteDescription || "一个简洁优雅的博客";
+    const siteKeywords = settingsMap.siteKeywords || "博客,技术,编程";
+    const siteUrl = settingsMap.siteUrl || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
+    return {
+      metadataBase: new URL(siteUrl),
+      title: {
+        default: siteName,
+        template: `%s | ${siteName}`,
+      },
+      description: siteDescription,
+      keywords: siteKeywords.split(",").map((k) => k.trim()),
+      openGraph: {
+        type: "website",
+        locale: "zh-CN",
+        url: siteUrl,
+        siteName: siteName,
+        title: siteName,
+        description: siteDescription,
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: siteName,
+        description: siteDescription,
+      },
+      robots: {
+        index: true,
+        follow: true,
+      },
+    };
+  } catch {
+    // 如果数据库查询失败，返回默认值
+    return {
+      title: {
+        default: "My Blog",
+        template: "%s | My Blog",
+      },
+      description: "一个简洁优雅的博客",
+    };
+  }
+}
 
 // 内联脚本：在页面渲染前应用主题颜色，避免闪烁
 const themeColorScript = `

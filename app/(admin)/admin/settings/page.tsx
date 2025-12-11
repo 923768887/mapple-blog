@@ -13,7 +13,8 @@ import {
   FileText,
   Save,
   Loader2,
-  Check
+  Check,
+  User
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -70,6 +71,13 @@ const settingsSchema = z.object({
   // 页脚
   footerText: z.string(),
   footerIcp: z.string(),
+  // 关于页面
+  aboutAvatar: z.string(),
+  aboutName: z.string(),
+  aboutTitle: z.string(),
+  aboutBio: z.string(),
+  aboutSkills: z.string(),
+  aboutLocation: z.string(),
 });
 
 type SettingsFormValues = z.infer<typeof settingsSchema>;
@@ -114,6 +122,12 @@ export default function SettingsPage() {
       postsPerPage: "10",
       footerText: "",
       footerIcp: "",
+      aboutAvatar: "",
+      aboutName: "",
+      aboutTitle: "",
+      aboutBio: "",
+      aboutSkills: "",
+      aboutLocation: "",
     },
   });
 
@@ -247,10 +261,14 @@ export default function SettingsPage() {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <Tabs defaultValue="basic" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="basic" className="gap-2">
                 <Globe className="h-4 w-4" />
                 <span className="hidden sm:inline">基本设置</span>
+              </TabsTrigger>
+              <TabsTrigger value="about" className="gap-2">
+                <User className="h-4 w-4" />
+                <span className="hidden sm:inline">关于页面</span>
               </TabsTrigger>
               <TabsTrigger value="theme" className="gap-2">
                 <Palette className="h-4 w-4" />
@@ -364,6 +382,110 @@ export default function SettingsPage() {
               </Card>
             </TabsContent>
 
+            {/* 关于页面 */}
+            <TabsContent value="about">
+              <Card>
+                <CardHeader>
+                  <CardTitle>关于页面</CardTitle>
+                  <CardDescription>
+                    设置关于页面显示的个人简介信息
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="aboutAvatar"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>头像 URL</FormLabel>
+                        <FormControl>
+                          <Input placeholder="https://example.com/avatar.jpg" {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          个人头像图片地址
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="aboutName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>显示名称</FormLabel>
+                        <FormControl>
+                          <Input placeholder="你的名字" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="aboutTitle"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>职业/头衔</FormLabel>
+                        <FormControl>
+                          <Input placeholder="全栈开发工程师" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="aboutLocation"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>所在地</FormLabel>
+                        <FormControl>
+                          <Input placeholder="中国 · 北京" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="aboutBio"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>个人简介</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            placeholder="介绍一下你自己..." 
+                            className="min-h-[120px]"
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          支持多行文本，将显示在关于页面
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="aboutSkills"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>技能标签</FormLabel>
+                        <FormControl>
+                          <Input placeholder="React, Next.js, TypeScript, Node.js" {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          多个技能用逗号分隔
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
 
             {/* 主题颜色 */}
             <TabsContent value="theme">

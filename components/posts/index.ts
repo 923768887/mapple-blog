@@ -6,3 +6,4 @@ export { TagCloud, type TagData } from "./tag-cloud";
 export { PostDetail, type PostDetailData, type AdjacentPost } from "./post-detail";
 export { MarkdownRenderer } from "./markdown-renderer";
 export { TableOfContents } from "./table-of-contents";
+export { InfinitePostList, InfinitePostListSkeleton } from "./infinite-post-list";

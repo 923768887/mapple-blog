@@ -315,6 +315,16 @@
   scrollbar-color: var(--border) transparent;
 }
 
+/* 隐藏滚动条但保留滚动功能 */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}
+
 /* Webkit 浏览器滚动条样式 */
 .scrollbar-thin::-webkit-scrollbar {
   width: 6px;
