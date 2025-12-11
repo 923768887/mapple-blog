@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
@@ -28,21 +28,33 @@ function LoginForm() {
     setIsLoading(true);
 
     try {
+      console.log("开始登录...", { email, callbackUrl });
+      
       const result = await signIn("credentials", {
         email,
         password,
         redirect: false,
       });
 
+      console.log("登录结果:", result);
+
       if (result?.error) {
+        console.error("登录错误:", result.error);
         setError("邮箱或密码错误，请重试");
+        setIsLoading(false);
+      } else if (result?.ok) {
+        console.log("登录成功，跳转到:", callbackUrl);
+        // 使用 router 跳转，保留控制台日志
+        router.push(callbackUrl);
+        router.refresh();
       } else {
-        // 使用 window.location 进行硬跳转，确保 session 正确刷新
-        window.location.href = callbackUrl;
+        console.error("未知登录状态:", result);
+        setError("登录状态异常，请重试");
+        setIsLoading(false);
       }
-    } catch {
+    } catch (err) {
+      console.error("登录异常:", err);
       setError("登录失败，请稍后重试");
-    } finally {
       setIsLoading(false);
     }
   };
