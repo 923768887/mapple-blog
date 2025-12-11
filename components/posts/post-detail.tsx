@@ -69,6 +69,85 @@ interface PostDetailProps {
 }
 
 /**
+ * 移动端目录组件
+ */
+function MobileToc({ 
+  toc, 
+  onItemClick 
+}: { 
+  toc: TocItem[]; 
+  onItemClick: () => void;
+}) {
+  const handleClick = (e: React.MouseEvent, item: TocItem) => {
+    e.preventDefault();
+    
+    // 查找标题元素
+    let element = document.getElementById(item.id);
+    if (!element) {
+      const allHeadings = document.querySelectorAll('h1[id], h2[id], h3[id], h4[id], h5[id], h6[id]');
+      for (const heading of allHeadings) {
+        const headingText = heading.textContent?.trim() || '';
+        if (headingText === item.text) {
+          element = heading as HTMLElement;
+          break;
+        }
+      }
+    }
+    
+    if (element) {
+      const headerOffset = 80;
+      const elementPosition = element.getBoundingClientRect().top + window.scrollY;
+      const offsetPosition = elementPosition - headerOffset;
+      
+      // 先关闭目录
+      onItemClick();
+      
+      // 延迟滚动，等待 Sheet 关闭动画
+      setTimeout(() => {
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: "smooth"
+        });
+      }, 150);
+    }
+  };
+
+  const renderItem = (item: TocItem, depth: number = 0) => (
+    <li key={item.id}>
+      <a
+        href={`#${item.id}`}
+        onClick={(e) => handleClick(e, item)}
+        className={cn(
+          "flex items-center gap-3 py-3 px-4 -mx-4 rounded-xl transition-colors",
+          "hover:bg-muted active:bg-muted/80",
+          depth === 0 ? "font-medium" : "text-muted-foreground"
+        )}
+        style={{ paddingLeft: `${16 + depth * 16}px` }}
+      >
+        <span 
+          className={cn(
+            "w-2 h-2 rounded-full shrink-0",
+            depth === 0 ? "bg-primary" : "bg-muted-foreground/30"
+          )} 
+        />
+        <span className="line-clamp-1">{item.text}</span>
+      </a>
+      {item.children.length > 0 && (
+        <ul>
+          {item.children.map((child) => renderItem(child, depth + 1))}
+        </ul>
+      )}
+    </li>
+  );
+
+  return (
+    <ul className="space-y-1">
+      {toc.map((item) => renderItem(item))}
+    </ul>
+  );
+}
+
+/**
  * 文章详情组件
  * 显示完整的文章内容，包括标题、封面、元信息、正文和导航
  * 支持移动端目录浮动按钮
@@ -237,31 +316,33 @@ export function PostDetail({
             <Button
               size="icon"
               className={cn(
-                "fixed bottom-6 right-6 z-50 h-12 w-12 rounded-full shadow-lg lg:hidden",
+                "fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full shadow-xl lg:hidden",
                 "bg-primary text-primary-foreground hover:bg-primary/90",
-                "transition-transform active:scale-95"
+                "transition-all active:scale-95",
+                "ring-4 ring-primary/20"
               )}
               aria-label="打开目录"
             >
-              {tocOpen ? (
-                <X className="h-5 w-5" />
-              ) : (
-                <List className="h-5 w-5" />
-              )}
+              <List className="h-6 w-6" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="bottom" className="h-[70vh] rounded-t-2xl">
-            <SheetHeader className="border-b pb-4">
-              <SheetTitle className="flex items-center gap-2">
-                <List className="h-5 w-5" />
-                文章目录
+          <SheetContent 
+            side="bottom" 
+            className="h-[60vh] rounded-t-3xl px-0"
+          >
+            <SheetHeader className="px-6 pb-4 border-b">
+              <SheetTitle className="flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  <List className="h-5 w-5 text-primary" />
+                  文章目录
+                </span>
+                <span className="text-xs text-muted-foreground font-normal">
+                  {toc.length} 个章节
+                </span>
               </SheetTitle>
             </SheetHeader>
-            <div className="mt-4 overflow-y-auto h-[calc(70vh-80px)]">
-              <TableOfContents 
-                toc={toc} 
-                className="pr-4"
-              />
+            <div className="px-6 py-4 overflow-y-auto h-[calc(60vh-80px)] scrollbar-hide">
+              <MobileToc toc={toc} onItemClick={() => setTocOpen(false)} />
             </div>
           </SheetContent>
         </Sheet>
