@@ -56,15 +56,15 @@ export async function GET() {
   }
 }
 
-// 批量更新设置
+// 批量更新设置（仅超级管理员可操作）
 export async function PUT(request: Request) {
   try {
-    // 验证登录状态
+    // 验证登录状态和管理员权限
     const session = await getSession();
-    if (!session?.userId) {
+    if (!session?.userId || session.role !== "ADMIN") {
       return NextResponse.json(
-        { error: "未授权" },
-        { status: 401 }
+        { error: "无权限访问" },
+        { status: 403 }
       );
     }
     

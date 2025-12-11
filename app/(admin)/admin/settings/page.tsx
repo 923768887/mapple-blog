@@ -92,6 +92,7 @@ const presetColors = [
 export default function SettingsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [hasPermission, setHasPermission] = useState(true);
   const { toast } = useToast();
 
   const form = useForm<SettingsFormValues>({
@@ -120,8 +121,21 @@ export default function SettingsPage() {
   useEffect(() => {
     let isMounted = true;
     
-    async function loadSettings() {
+    async function checkPermissionAndLoadSettings() {
       try {
+        // 先检查用户权限
+        const meResponse = await fetch("/api/auth/me");
+        const meData = await meResponse.json();
+        
+        if (!meData.user || meData.user.role !== "ADMIN") {
+          if (isMounted) {
+            setHasPermission(false);
+            setIsLoading(false);
+          }
+          return;
+        }
+
+        // 加载设置
         const response = await fetch("/api/settings");
         if (response.ok && isMounted) {
           const data = await response.json();
@@ -142,7 +156,7 @@ export default function SettingsPage() {
         }
       }
     }
-    loadSettings();
+    checkPermissionAndLoadSettings();
     
     return () => {
       isMounted = false;
@@ -190,6 +204,18 @@ export default function SettingsPage() {
     );
   }
 
+  // 无权限提示
+  if (!hasPermission) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
+        <Settings className="h-16 w-16 text-muted-foreground mb-4" />
+        <h2 className="text-xl font-semibold mb-2">无访问权限</h2>
+        <p className="text-muted-foreground">
+          只有超级管理员才能访问站点设置
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -466,7 +492,7 @@ export default function SettingsPage() {
                       <FormItem>
                         <FormLabel>GitHub</FormLabel>
                         <FormControl>
-                          <Input placeholder="https://github.com/username" {...field} />
+                          <Input placeholder="" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -477,9 +503,9 @@ export default function SettingsPage() {
                     name="socialTwitter"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Twitter / X</FormLabel>
+                        <FormLabel>微信</FormLabel>
                         <FormControl>
-                          <Input placeholder="https://twitter.com/username" {...field} />
+                          <Input placeholder="" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -492,7 +518,7 @@ export default function SettingsPage() {
                       <FormItem>
                         <FormLabel>邮箱</FormLabel>
                         <FormControl>
-                          <Input placeholder="your@email.com" {...field} />
+                          <Input placeholder="" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -518,9 +544,9 @@ export default function SettingsPage() {
                     name="googleAnalyticsId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Google Analytics ID</FormLabel>
+                        <FormLabel>Baidu Analytics ID</FormLabel>
                         <FormControl>
-                          <Input placeholder="G-XXXXXXXXXX" {...field} />
+                          <Input placeholder="" {...field} />
                         </FormControl>
                         <FormDescription>
                           用于网站流量分析

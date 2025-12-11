@@ -94,6 +94,9 @@ export default function EditPostPage({ params }: EditPostPageProps) {
           if (response.status === 404) {
             throw new Error("文章不存在");
           }
+          if (response.status === 403) {
+            throw new Error("您没有权限编辑此文章");
+          }
           throw new Error("获取文章失败");
         }
 

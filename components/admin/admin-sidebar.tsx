@@ -14,6 +14,8 @@ import {
   LogOut,
   ChevronRight,
   PenSquare,
+  Users,
+  Shield,
 } from "lucide-react";
 
 import {
@@ -78,16 +80,23 @@ const navItems = [
     icon: FolderOpen,
   },
   {
+    title: "用户管理",
+    url: "/admin/users",
+    icon: Users,
+    adminOnly: true, // 仅管理员可见
+  },
+  {
     title: "站点设置",
     url: "/admin/settings",
     icon: Settings,
+    adminOnly: true, // 仅管理员可见
   },
 ];
 
 
 // 用户导航组件
 function NavUser() {
-  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
+  const [user, setUser] = useState<{ name: string; email: string; role: string } | null>(null);
 
   useEffect(() => {
     // 获取当前用户信息
@@ -172,14 +181,23 @@ function NavUser() {
 }
 
 // 主导航组件
-function NavMain() {
+function NavMain({ isAdmin }: { isAdmin: boolean }) {
   const pathname = usePathname();
+
+  // 根据权限过滤菜单项
+  const filteredNavItems = navItems.filter((item) => {
+    // 站点设置和用户管理仅管理员可见
+    if (item.adminOnly && !isAdmin) {
+      return false;
+    }
+    return true;
+  });
 
   return (
     <SidebarGroup>
       <SidebarGroupLabel>导航菜单</SidebarGroupLabel>
       <SidebarMenu>
-        {navItems.map((item) => {
+        {filteredNavItems.map((item) => {
           // 有子菜单的项目
           if (item.items) {
             const isActive = item.items.some((subItem) => pathname === subItem.url);
@@ -255,27 +273,41 @@ function QuickActions() {
 
 // 后台侧边栏主组件
 export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    // 获取当前用户角色
+    fetch("/api/auth/me")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.user?.role === "ADMIN") {
+          setIsAdmin(true);
+        }
+      })
+      .catch(console.error);
+  }, []);
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <Link href="/admin">
-                {/* <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                  <LayoutDashboard className="size-4" />
+              <Link href="/admin" className="flex items-center gap-2">
+                <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
+                  {isAdmin ? <Shield className="size-4" /> : <LayoutDashboard className="size-4" />}
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">博客后台</span>
-                  <span className="truncate text-xs">管理系统</span>
-                </div> */}
+                  <span className="truncate text-xs">{isAdmin ? "超级管理员" : "内容管理"}</span>
+                </div>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain />
+        <NavMain isAdmin={isAdmin} />
         <QuickActions />
       </SidebarContent>
       <SidebarFooter>
