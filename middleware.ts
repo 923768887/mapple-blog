@@ -3,12 +3,16 @@ import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
 /**
- * 路由代理处理器
+ * 路由中间件
  * 处理认证保护和路由重定向
- * Requirements: 4.4
  */
-export async function proxy(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.AUTH_SECRET });
+export async function middleware(req: NextRequest) {
+  // 使用 getToken 验证 JWT，不依赖 Prisma
+  const token = await getToken({ 
+    req, 
+    secret: process.env.AUTH_SECRET,
+  });
+  
   const isLoggedIn = !!token;
   const isAdminRoute = req.nextUrl.pathname.startsWith("/admin");
   const isLoginPage = req.nextUrl.pathname === "/login";
