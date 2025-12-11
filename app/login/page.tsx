@@ -37,8 +37,8 @@ function LoginForm() {
       if (result?.error) {
         setError("邮箱或密码错误，请重试");
       } else {
-        router.push(callbackUrl);
-        router.refresh();
+        // 使用 window.location 进行硬跳转，确保 session 正确刷新
+        window.location.href = callbackUrl;
       }
     } catch {
       setError("登录失败，请稍后重试");
